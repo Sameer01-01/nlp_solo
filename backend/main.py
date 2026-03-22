@@ -70,19 +70,22 @@ async def analyze_product(req: ProductQueryRequest):
     query = req.query
     
     # 1. Fetch products from SerpAPI
-    products = fetch_products(query)
+    try:
+        products = fetch_products(query)
+    except Exception:
+        products = []
     
     # 2. Simulate large-scale reviews dataset
-    # We restrict count to ~40-50 to ensure the CPU isn't overwhelmed during demo
-    mock_reviews = generate_mock_reviews(query, count=40)
+    # Restricted to a reasonable pool size so CPU inference finishes accurately without freezing
+    mock_reviews = generate_mock_reviews(query, count=45)
     
-    # 3 & 4. Run NLP pipeline and Aggregate
-    analysis_results = aggregate_results(mock_reviews)
+    # 3 & 4. Run NLP pipeline and Aggregate Insights
+    response_data = aggregate_results(mock_reviews, products)
     
-    return {
-        "products": products,
-        "analysis": analysis_results
-    }
+    # Combine the payload
+    response_data["products"] = products
+    
+    return response_data
 
 if __name__ == "__main__":
     # Trigger hot-reload to apply NumPy environment fixes
