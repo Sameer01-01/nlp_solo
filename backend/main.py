@@ -7,6 +7,9 @@ from nlp.sentiment import get_overall_sentiment, get_aspect_sentiment
 from nlp.aspect_extractor import extract_aspects
 from nlp.summarizer import generate_summary
 from utils.preprocess import preprocess_text
+from services.serpapi_service import fetch_products
+from services.review_fetcher import generate_mock_reviews
+from services.aggregator import aggregate_results
 
 app = FastAPI(title="Explainable Aspect-Based Sentiment Analyzer")
 
@@ -58,6 +61,28 @@ async def analyze_review(req: ReviewRequest):
         aspects=aspect_list,
         summary=summary
     )
+
+class ProductQueryRequest(BaseModel):
+    query: str
+
+@app.post("/analyze-product")
+async def analyze_product(req: ProductQueryRequest):
+    query = req.query
+    
+    # 1. Fetch products from SerpAPI
+    products = fetch_products(query)
+    
+    # 2. Simulate large-scale reviews dataset
+    # We restrict count to ~40-50 to ensure the CPU isn't overwhelmed during demo
+    mock_reviews = generate_mock_reviews(query, count=40)
+    
+    # 3 & 4. Run NLP pipeline and Aggregate
+    analysis_results = aggregate_results(mock_reviews)
+    
+    return {
+        "products": products,
+        "analysis": analysis_results
+    }
 
 if __name__ == "__main__":
     # Trigger hot-reload to apply NumPy environment fixes
