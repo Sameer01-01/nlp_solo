@@ -60,4 +60,5 @@ async def analyze_review(req: ReviewRequest):
     )
 
 if __name__ == "__main__":
+    # Trigger hot-reload to apply NumPy environment fixes
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
